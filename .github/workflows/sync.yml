@@ -1,0 +1,41 @@
+name: Daily CF App Start
+
+on:
+  schedule:
+    # 每天北京时间 08:00 执行（UTC = 北京时间 - 8）
+    - cron: "0 0 * * *"
+  workflow_dispatch:   # 支持手动触发
+
+jobs:
+  run-cf:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install Cloud Foundry CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget
+          wget -q -O cf-cli.deb "https://packages.cloudfoundry.org/stable?release=debian64&source=github"
+          sudo dpkg -i cf-cli.deb
+          cf --version
+
+      - name: Login to Cloud Foundry
+        env:
+          CF_API: https://api.cf.us10-001.hana.ondemand.com
+          CF_USERNAME: ${{ secrets.CF_USERNAME }}
+          CF_PASSWORD: ${{ secrets.CF_PASSWORD }}
+          CF_ORG: 405a27abtrial
+          CF_SPACE: dev
+        run: |
+          cf api $CF_API --skip-ssl-validation
+          cf auth "$CF_USERNAME" "$CF_PASSWORD"
+          cf target -o "$CF_ORG" -s "$CF_SPACE"
+
+      - name: Start App
+        env:
+          CF_APP: ng7
+        run: |
+          cf start "$CF_APP" || cf restart "$CF_APP"
