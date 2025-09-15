@@ -2,8 +2,8 @@ name: Daily CF App Start
 
 on:
   schedule:
-    # 每天北京时间 08:00 执行（UTC = 北京时间 - 8）
-    - cron: "0 0 * * *"
+    # UTC时间23:00 = 北京时间次日07:00
+    - cron: "0 23 * * *"
   workflow_dispatch:   # 支持手动触发
 
 jobs:
